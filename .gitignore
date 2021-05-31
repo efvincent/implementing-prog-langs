@@ -1,0 +1,6 @@
+build
+*.y
+*.o
+*.x
+*.hi
+Test
