@@ -1,0 +1,105 @@
+-- A Program is a series of definitions
+PDefs. Program ::= [Def] ;
+terminator Def "" ;
+
+comment "//" ;
+comment "/*" "*/" ;
+
+{-
+A function has a type, name, arg list, and a body
+
+    int foo (double x, int y) {
+        return y + 9;
+    }
+
+We decide to specify all parts of a function definition in one
+rule, in addition to which we specifiy the form of argument and
+statement lists
+-}
+
+DFun.           Def ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+separator       Arg "," ;
+terminator      Stm ""  ;
+
+-- An argument declaration has a type and an identifier
+ADecl.          Arg ::= Type Id ;
+
+-- Any expression followed by a semicolon can be used as a statement
+SExp.           Stm ::= Exp ";" ;
+
+-- Any declaration followed by a semicolon can be used as a statement
+-- Declarations can have three forms: one type & one var, one type and a list 
+-- vars, or one type and one initialized var
+-- the first form is the same as an argument declaration (ADecl) but
+-- we'll just restate the rule
+SDecl.          Stm ::= Type Id ";" ;
+SDecls.         Stm ::= Type Id "," [Id] ";" ;
+SInit.          Stm ::= Type Id "=" Exp ";" ;
+
+{-
+Statements also include:
+    * statements returning an expression:
+    return i + 9;
+
+    * while loops with an expression in the parens followed by a statement
+    while (i < 10) ++i;
+
+    * conditions: if with an expression in parens followed by a statement,
+      an else, and another statement
+    if (x > 10) return x; else return y;
+
+    * blocks: any list of statements (including the empty list) between curly braces
+    { int i = 2; { } i++; }  
+-}
+SReturn.        Stm ::= "return" Exp ";" ;
+SWhile.         Stm ::= "while" "(" Exp ")" Stm ;
+SIfElse.        Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+SBlock.         Stm ::= "{" [Stm] "}" ;
+
+-- See table on p35 for expression precedences and definitions
+
+EInt.       Exp15   ::= Integer ;
+EDouble.    Exp15   ::= Double ;
+EString.    Exp15   ::= String ;
+ETrue.      Exp15   ::= "true" ;
+EFalse.     Exp15   ::= "false" ;
+EId.        Exp15   ::= Id ;
+
+ECall.      Exp15   ::= Id "(" [Exp] ")" ;
+
+EPIncr.     Exp14   ::= Exp15 "++" ;
+EPDecr.     Exp14   ::= Exp15 "--" ;
+
+EIncr.      Exp13   ::= "++" Exp14;
+EDecr.      Exp13   ::= "--" Exp14;
+ENeg.       Exp13   ::= "-" Exp14;
+
+EMul.       Exp12   ::= Exp12 "*" Exp13 ;
+EDiv.       Exp12   ::= Exp12 "/" Exp13 ;
+EAdd.       Exp11   ::= Exp11 "+" Exp12 ;
+ESub.       Exp11   ::= Exp11 "-" Exp12 ;
+ELt.        Exp9    ::= Exp9 "<" Exp10 ;
+EGt.        Exp9    ::= Exp9 ">" Exp10 ;
+ELEq.       Exp9    ::= Exp9 "<=" Exp10 ;
+EGEq.       Exp9    ::= Exp9 ">=" Exp10 ;
+EEq.        Exp8    ::= Exp9 "==" Exp8 ;
+ENeq.       Exp8    ::= Exp9 "!=" Exp8 ;
+EAnd.       Exp4    ::= Exp4 "&&" Exp5 ;
+EOr.        Exp3    ::= Exp3 "||" Exp4 ;
+EAss.       Exp2    ::= Exp3 "=" Exp2 ;
+
+coercions   Exp 15 ;
+separator   Exp "," ;
+
+-- Limited set of types for simple C
+
+Tbool.      Type ::= "bool" ;
+Tdouble.    Type ::= "double" ;
+Tint.       Type ::= "int" ;
+Tstring.    Type ::= "string" ;
+Tvoid.      Type ::= "void" ;
+
+-- Cannot use the built in identifier which includes a single quote
+-- instead use a regular expression to be specific
+
+position token Id (letter (letter | digit | '_')*) ;
