@@ -32,9 +32,10 @@ SExp.           Stm ::= Exp ";" ;
 -- vars, or one type and one initialized var
 -- the first form is the same as an argument declaration (ADecl) but
 -- we'll just restate the rule
-SDecl.          Stm ::= Type Id ";" ;
-SDecls.         Stm ::= Type Id "," [Id] ";" ;
+SDecls.         Stm ::= Type [Id] ";" ;
 SInit.          Stm ::= Type Id "=" Exp ";" ;
+
+separator nonempty Id "," ;
 
 {-
 Statements also include:
@@ -90,6 +91,18 @@ EAss.       Exp2    ::= Exp3 "=" Exp2 ;
 
 coercions   Exp 15 ;
 separator   Exp "," ;
+
+-- Internal will not add ETyped to the parser, but only to 
+-- the abstract syntax, where we can use it to annotate an
+-- expression with its type
+internal ETyped.    Exp ::= "[" Exp ":" Type "]" ;
+
+-- When set to internal, the parser doesn't allow explicit
+-- type conversion as syntax, but the abstract syntax allows
+-- a way to represent it, which allows us to add expression nodes
+-- of this type during typechecking when a type conversion
+-- is added to an operand that doesn't have the maximial type
+internal EConv.     Exp ::= "(" Type ")" Exp ;
 
 -- Limited set of types for simple C
 
